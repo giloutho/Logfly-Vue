@@ -1,7 +1,8 @@
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
-export function createAltitudeChart(fixes, chartId = 'chart') {
+// context : objet optionnel pour mousemove (graphInfoDiv, _feature, fullmap, hoverMarker)
+export function createAltitudeChart(fixes, chartId = 'chart', context) {
   if (!fixes || fixes.length === 0) return
 
   const timestamps = []
@@ -69,5 +70,58 @@ export function createAltitudeChart(fixes, chartId = 'chart') {
     ]
   }
 
-  return new uPlot(opts, data, document.getElementById(chartId))
+  const uplot = new uPlot(opts, data, document.getElementById(chartId))
+
+  // Extraction des heures pour chaque point
+  const arrayHour = fixes.map(fix => new Date(fix.timestamp))
+  // Altitude sol si disponible
+  const y2 = fixes.map(fix => fix.groundAltitude)
+
+  // Ajout de l'event mousemove pour affichage dynamique
+  uplot.root.addEventListener('mousemove', e => {
+    if (!uplot.cursor) return
+    const idx = uplot.cursor.idx
+    if (idx != null && idx >= 0 && idx < fixes.length) {
+      const heure = arrayHour[idx]
+      const alt = altitudes[idx]
+      const sol = y2[idx]
+      const hground = sol !== undefined && sol !== null ? (alt - sol).toFixed(0) : 'N/A'
+      const vario = varios[idx]
+      const speed = speeds[idx]
+      // Affichage des infos du point survolé
+      if (context && context.graphInfoDiv) {
+        context.graphInfoDiv.innerHTML =
+          `<span style=\"color:#1a6dcc;font-weight:bold;\">🕒 ${heure.getUTCHours().toString().padStart(2, '0')}:${heure.getUTCMinutes().toString().padStart(2, '0')}</span>
+          &nbsp;|&nbsp;
+          <span style=\"color:#1976d2;\">⛰️ ${alt.toFixed(0)} m</span>
+          &nbsp;|&nbsp;
+          <span style=\"color:Sienna;\">🟫 ${sol !== undefined ? sol.toFixed(0) : 'N/A'} m</span>
+          &nbsp;|&nbsp;
+          <span style=\"color:#6d4c41;\">↕️ ${hground} m</span>
+          &nbsp;|&nbsp;
+          <span style=\"color:#388e3c;\">⬇️ ${vario.toFixed(2)} m/s</span>
+          &nbsp;|&nbsp;
+          <span style=\"color:#e65100;\">➡️ ${speed.toFixed(0)} km/h</span>`
+      }
+      // Marker sur la carte
+      if (context && context._feature && context.fullmap) {
+        const coords = context._feature.geometry.coordinates
+        const coord = coords[idx]
+        if (coord) {
+          const latlng = [coord[1], coord[0]]
+          if (context.hoverMarker) {
+            context.fullmap.removeLayer(context.hoverMarker)
+          }
+          context.hoverMarker = L.circleMarker(latlng, {
+            radius: 7,
+            color: 'orange',
+            fillColor: 'yellow',
+            fillOpacity: 0.8,
+            weight: 2
+          }).addTo(context.fullmap)
+        }
+      }
+    }
+  })
+  return uplot
 }
