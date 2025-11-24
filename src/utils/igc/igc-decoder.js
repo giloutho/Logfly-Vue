@@ -4,7 +4,7 @@ import {distance} from '@/utils/geo/trigo.js'
 import {computeOffsetUTC} from '@/utils/geo/offset-utc.js'
 import turfbbox from '@turf/bbox'
 
-export function igcDecoding(strIgc) { 
+export async function igcDecoding(strIgc) { 
     // In some cases, the A record may be missing
     // bug introduced in V4 with merged flights
     if (strIgc.substring(0, 1) === 'A') {
@@ -15,12 +15,13 @@ export function igcDecoding(strIgc) {
             strIgc = cleanString
         }
         const track = new IGCDecoder(strIgc)
-        track.parse(true, true)      	
-        if (track.fixes.length> 0) {
-            return{ success: true,  data : track}; 
+        // Si parse ou une dépendance devient async, on peut await ici
+        track.parse(true, true)
+        if (track.fixes.length > 0) {
+            return { success: true, data: track }
         } else {
-            return { success: false, message: 'IGC parsing failed' };   
-      }           
+            return { success: false, message: 'IGC parsing failed' }
+        }
     } else {
         return { success: false, message: 'A record is missing' };         
     }   
