@@ -16,6 +16,7 @@ export function createAltitudeChart(fixes, chartId = 'chart') {
     timestamps.push((fixes[i].timestamp / 1000) - startTime)
     altitudes.push(fixes[i].gpsAltitude || 0)
 
+
     if (i > 0) {
       const dt = (fixes[i].timestamp - fixes[i-1].timestamp) / 1000
       if (dt > 0) {

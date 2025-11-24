@@ -29,6 +29,7 @@
     </v-dialog>
     <div v-if="decodedData && decodedData.success" class="map-wrapper">
       <div id="map" class="map-container"></div>
+      <div id="graph-info" class="graph-info"></div>
       <div class="altitude-graph">
         <div id="chart" class="chart-container"></div>
       </div>
@@ -84,8 +85,13 @@ watch(() => decodedData.value, (val) => {
       const geoLayer = L.geoJSON(val.data.GeoJSON).addTo(map)
       const bounds = geoLayer.getBounds()
       if (bounds.isValid()) map.fitBounds(bounds)
-      // Création du graphe d'altitude
-      chart = createAltitudeChart(val.data.fixes, 'chart')
+      // Création du graphe d'altitude avec event mousemove
+      chart = createAltitudeChart(val.data.fixes, 'chart', {
+        graphInfoDiv: document.getElementById('graph-info'),
+        _feature: val.data.GeoJSON.features[0],
+        fullmap: map,
+        hoverMarker: null
+      })
     }, 100)
   }
 })
@@ -182,5 +188,19 @@ h1 {
   width: 100%;
   height: 100%;
   padding: 5px;
+}
+.graph-info {
+  width: 100%;
+  min-height: 28px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
+  font-size: 1.05em;
+  padding: 6px 12px;
+  color: #333;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 </style>
