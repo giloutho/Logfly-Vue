@@ -14,7 +14,15 @@
         />
         <v-btn class="toolbar-btn" color="default">Chronologie</v-btn>
         <v-btn class="toolbar-btn" color="default">Espaces aériens</v-btn>
-        <v-btn class="toolbar-btn" color="default">Score</v-btn>
+        <v-btn class="toolbar-btn" color="default" @click="scoreDialog = true">Score</v-btn>
+        <ScoreDialog
+          :modelValue="scoreDialog"
+          @update:modelValue="scoreDialog = $event"
+          :scores="scores"
+          :fixes="decodedData?.data?.fixes || []"
+          :date="decodedData?.data?.info?.date || ''"
+          :scoringFn="igcScoring"
+        />
         <v-btn class="toolbar-btn" color="default">Mesurer</v-btn>
         <v-btn class="toolbar-btn" color="default">Couper</v-btn>
       </template>
@@ -48,6 +56,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import ScoreDialog from '@/components/ScoreDialog.vue'
 import TraceInfoDialog from '@/components/TraceInfoDialog.vue'
 import { igcDecoding } from '@/utils/igc/igc-decoder.js';
 import { IgcAnalyze } from '@/utils/igc/igc-analyzer.js';
@@ -59,6 +68,20 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
 const dialog = ref(false)
+const scoreDialog = ref(false)
+const scores = [
+  'FFVL',
+  'XContest',
+  'FAI',
+  'FAI-Cylinders',
+  'FAI-OAR',
+  'FAI-OAR2',
+  'XCLeague'
+]
+function onScoreValidate(selectedScore) {
+  // Ici tu peux lancer le calcul du score avec la règle sélectionnée
+  console.log('Score sélectionné :', selectedScore)
+}
 const infosDialog = ref(false)
 const selectedFile = ref(null)
 const fileContent = ref('')
