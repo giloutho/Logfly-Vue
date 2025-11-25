@@ -1,8 +1,3 @@
-// Polyfill pour igc-xc-score (nécessaire dans le navigateur)
-if (typeof window !== 'undefined' && !window.global) {
-  window.global = window;
-}
-
 import { scoringRules, solver } from 'igc-xc-score'
 const miniIgcPoints = 5
 
