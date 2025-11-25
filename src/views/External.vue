@@ -51,6 +51,7 @@ import { ref, watch, onMounted } from 'vue'
 import TraceInfoDialog from '@/components/TraceInfoDialog.vue'
 import { igcDecoding } from '@/utils/igc/igc-decoder.js';
 import { IgcAnalyze } from '@/utils/igc/igc-analyzer.js';
+import { igcScoring } from '@/utils/igc/igc-scoring.js';
 import { createAltitudeChart } from '@/utils/igc/igc-graph.js'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -129,7 +130,13 @@ async function validateFile() {
       if (decodedData.value.success && decodedData.value.data.fixes && decodedData.value.data.fixes.length > 0) {
         console.log('decodedData:', decodedData.value);
         anaResult.value = await IgcAnalyze(decodedData.value.data.fixes)
-        console.log('Analyse:', anaResult.value)
+        const scoringParams = {
+          date: decodedData.value.data.info.date,
+          fixes: decodedData.value.data.fixes,
+          league: 'FFVL' // ou une autre ligue selon le besoin
+        };
+        const scoringResult = await igcScoring(scoringParams)
+        console.log('Score :',scoringResult)
       } else {
         anaResult.value = null
       }

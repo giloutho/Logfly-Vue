@@ -1,3 +1,8 @@
+// Polyfill pour igc-xc-score (nécessaire dans le navigateur)
+if (typeof window !== 'undefined' && !window.global) {
+  window.global = window;
+}
+
 import { scoringRules, solver } from 'igc-xc-score'
 const miniIgcPoints = 5
 
@@ -25,8 +30,8 @@ export async function igcScoring(argsScoring) {
     try {
         const scoringResult = await scoring({
             date: flightDate,
-            fixes: fixes,
-            league: league
+            fixes: args.fixes,
+            league: args.league
         })        
         if (!scoringResult.success) {
             console.log('igc:scoring failed : ', scoringResult.message);
