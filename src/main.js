@@ -1,4 +1,3 @@
-// src/main.js
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -14,6 +13,12 @@ import '@mdi/font/css/materialdesignicons.css' // Importation des icônes
 const vuetify = createVuetify({
   components,
   directives,
+  defaults: {
+    VBtn: {
+      // pour éviter une erreur Vuetify liée aux "ripples" (effet visuel au clic sur les boutons) 
+      ripple: false
+    }
+  },
   icons: {
     defaultSet: 'mdi', // Utilisation des MDI par défaut
   },
