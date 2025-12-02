@@ -23,7 +23,7 @@
             </div>
             <div>
               <div><b>Site :</b> {{ anaResult.site || '-' }}</div>
-              <div><b>Voile :</b> {{ anaResult.glider || '-' }}</div>
+              <div><b>Voile :</b> {{ decodedData.data.info.gliderType || '-' }}</div>
               <div><b>Alti GPS :</b> {{ anaResult.altStartGps || '-' }} m</div>
               <div><b>Alti GPS :</b> {{ anaResult.altEndGps || '-' }} m</div>
               <div><b>Longueur :</b> {{ anaResult.length || '-' }} km</div>

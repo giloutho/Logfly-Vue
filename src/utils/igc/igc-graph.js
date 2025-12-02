@@ -2,7 +2,8 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
 // context : objet optionnel pour mousemove (graphInfoDiv, _feature, fullmap, hoverMarker)
-export function createAltitudeChart(fixes, chartId = 'chart', context) {
+// groundAltitudes : tableau optionnel (même longueur que fixes) pour afficher la courbe sol
+export function createAltitudeChart(fixes, chartId = 'chart', context, groundAltitudes = null) {
   if (!fixes || fixes.length === 0) return
 
   const timestamps = []
@@ -13,17 +14,13 @@ export function createAltitudeChart(fixes, chartId = 'chart', context) {
   const startTime = fixes[0].timestamp / 1000
 
   for (let i = 0; i < fixes.length; i++) {
-
     timestamps.push((fixes[i].timestamp / 1000) - startTime)
     altitudes.push(fixes[i].gpsAltitude || 0)
-
-
     if (i > 0) {
       const dt = (fixes[i].timestamp - fixes[i-1].timestamp) / 1000
       if (dt > 0) {
         const dz = fixes[i].gpsAltitude - fixes[i-1].gpsAltitude
         varios.push(dz / dt)
-
         const dx = Math.sqrt(
           Math.pow(fixes[i].latitude - fixes[i-1].latitude, 2) +
           Math.pow(fixes[i].longitude - fixes[i-1].longitude, 2)
@@ -39,15 +36,29 @@ export function createAltitudeChart(fixes, chartId = 'chart', context) {
     }
   }
 
-  const data = [timestamps, altitudes]
-
-  const opts = {
-    width: document.getElementById(chartId).offsetWidth,
-    height: 140,
-    scales: {
-      x: { time: false },
-    },
-    series: [
+  // Préparer les données pour uPlot
+  let data, series
+  if (groundAltitudes && Array.isArray(groundAltitudes) && groundAltitudes.length === fixes.length) {
+    data = [timestamps, altitudes, groundAltitudes]
+    series = [
+      { label: 'Temps (s)' },
+      {
+        label: 'Altitude (m)',
+        stroke: '#1976d2',
+        width: 2,
+        fill: 'rgba(25, 118, 210, 0.1)'
+      },
+      {
+        label: 'Altitude sol',
+        stroke: "Sienna",
+        width: 2,
+        fill: "rgba(160, 82, 45, 0.18)", // Remplissage sous la courbe
+        show: true        
+      }
+    ]
+  } else {
+    data = [timestamps, altitudes]
+    series = [
       { label: 'Temps (s)' },
       {
         label: 'Altitude (m)',
@@ -55,7 +66,16 @@ export function createAltitudeChart(fixes, chartId = 'chart', context) {
         width: 2,
         fill: 'rgba(25, 118, 210, 0.1)'
       }
-    ],
+    ]
+  }
+
+  const opts = {
+    width: document.getElementById(chartId).offsetWidth,
+    height: 140,
+    scales: {
+      x: { time: false },
+    },
+    series,
     axes: [
       {
         values: (u, ticks) => {
@@ -74,8 +94,10 @@ export function createAltitudeChart(fixes, chartId = 'chart', context) {
 
   // Extraction des heures pour chaque point
   const arrayHour = fixes.map(fix => new Date(fix.timestamp))
-  // Altitude sol si disponible
-  const y2 = fixes.map(fix => fix.groundAltitude)
+  // Altitude sol si disponible (priorité au paramètre, sinon propriété sur fix)
+  const y2 = groundAltitudes && Array.isArray(groundAltitudes) && groundAltitudes.length === fixes.length
+    ? groundAltitudes
+    : fixes.map(fix => fix.groundAltitude)
 
   // Ajout de l'event mousemove pour affichage dynamique
   uplot.root.addEventListener('mousemove', e => {

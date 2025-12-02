@@ -62,6 +62,7 @@ import { igcDecoding } from '@/utils/igc/igc-decoder.js';
 import { IgcAnalyze } from '@/utils/igc/igc-analyzer.js';
 import { igcScoring } from '@/utils/igc/igc-scoring.js';
 import { createAltitudeChart } from '@/utils/igc/igc-graph.js'
+import { getAltitudesForPoints } from '@/utils/geo/elevation.js'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import uPlot from 'uplot'
@@ -124,6 +125,11 @@ watch(() => decodedData.value, (val) => {
         fullmap: map,
         hoverMarker: null
       })
+      
+      // Charger les altitudes sol si disponibles
+      if (anaResult.value?.anaTrack?.elevation && anaResult.value.anaTrack.elevation.length > 0) {
+        updateChartWithGroundAltitude()
+      }
     }, 100)
   }
 })
@@ -153,6 +159,27 @@ async function validateFile() {
       if (decodedData.value.success && decodedData.value.data.fixes && decodedData.value.data.fixes.length > 0) {
         console.log('decodedData:', decodedData.value);
         anaResult.value = await IgcAnalyze(decodedData.value.data.fixes)
+        console.log('Analyse elevation :', anaResult.value.anaTrack.elevation.length,'points');
+        
+        // Lancer le chargement des altitudes sol en arrière-plan
+        const validFixes = decodedData.value.data.fixes
+        const altitudesPromise = getAltitudesForPoints(validFixes, 14)
+        
+        altitudesPromise.then(altitudes => {
+          if (altitudes && altitudes.length > 0) {
+            // Mettre à jour le tableau elevation dans anaResult
+            anaResult.value.anaTrack.elevation = altitudes
+            console.log('Altitudes sol chargées:', altitudes.length, 'points')
+            
+            // Mettre à jour le graphe avec la nouvelle série
+            if (chart) {
+              updateChartWithGroundAltitude()
+            }
+          }
+        }).catch(err => {
+          console.error('Erreur lors du chargement des altitudes sol:', err)
+        })
+        
         const scoringParams = {
           date: decodedData.value.data.info.date,
           fixes: decodedData.value.data.fixes,
@@ -168,6 +195,30 @@ async function validateFile() {
     console.log(selectedFile.value.name)
   }
   dialog.value = false
+}
+
+function updateChartWithGroundAltitude() {
+  if (!chart || !decodedData.value || !anaResult.value?.anaTrack?.elevation) return
+
+  const fixes = decodedData.value.data.fixes
+  const groundAltitudes = anaResult.value.anaTrack.elevation
+
+  // Détruire l'ancien graphe
+  chart.destroy()
+
+  // Recréer le graphe avec la série sol via createAltitudeChart
+  chart = createAltitudeChart(
+    fixes,
+    'chart',
+    {
+      graphInfoDiv: document.getElementById('graph-info'),
+      _feature: decodedData.value.data.GeoJSON.features[0],
+      fullmap: map,
+      hoverMarker: null
+    },
+    groundAltitudes
+  )
+  console.log('Graphe mis à jour avec altitude sol')
 }
 </script>
 
