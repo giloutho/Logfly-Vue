@@ -19,4 +19,18 @@ export default defineConfig({
   define: {
     'global': 'globalThis',
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: [
+            'vue',
+            'uplot',
+            'leaflet'
+          ]
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  },
 })
