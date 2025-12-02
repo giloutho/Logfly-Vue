@@ -13,7 +13,8 @@
           :decodedData="decodedData"
         />
         <v-btn class="toolbar-btn" color="default">Chronologie</v-btn>
-        <v-btn class="toolbar-btn" color="default">Espaces aériens</v-btn>
+        <v-btn class="toolbar-btn" color="default" @click="airspaceDialog = true">Espaces aériens</v-btn>
+        <AirspaceDialog :modelValue="airspaceDialog" @update:modelValue="airspaceDialog = $event" />
         <v-btn class="toolbar-btn" color="default" @click="scoreDialog = true">Score</v-btn>
         <ScoreDialog
           :modelValue="scoreDialog"
@@ -58,6 +59,7 @@
 import { ref, watch, onMounted } from 'vue'
 import ScoreDialog from '@/components/ScoreDialog.vue'
 import TraceInfoDialog from '@/components/TraceInfoDialog.vue'
+import AirspaceDialog from '@/components/AirspaceDialog.vue'
 import { igcDecoding } from '@/utils/igc/igc-decoder.js';
 import { IgcAnalyze } from '@/utils/igc/igc-analyzer.js';
 import { igcScoring } from '@/utils/igc/igc-scoring.js';
@@ -84,6 +86,7 @@ function onScoreValidate(selectedScore) {
   console.log('Score sélectionné :', selectedScore)
 }
 const infosDialog = ref(false)
+const airspaceDialog = ref(false)
 const selectedFile = ref(null)
 const fileContent = ref('')
 const decodedData = ref(null)
