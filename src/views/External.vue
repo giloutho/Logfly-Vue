@@ -14,7 +14,7 @@
         />
         <v-btn class="toolbar-btn" color="default">Chronologie</v-btn>
         <v-btn class="toolbar-btn" color="default" @click="airspaceDialog = true">Espaces aériens</v-btn>
-        <AirspaceDialog :modelValue="airspaceDialog" @update:modelValue="airspaceDialog = $event" />
+        <AirspaceDialog :modelValue="airspaceDialog" @update:modelValue="airspaceDialog = $event" :decodedData="decodedData?.data" />
         <v-btn class="toolbar-btn" color="default" @click="scoreDialog = true">Score</v-btn>
         <ScoreDialog
           :modelValue="scoreDialog"

@@ -59,9 +59,12 @@
 
 <script setup>
 
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineEmits, watch, onMounted } from 'vue'
+import {displayOpenAip} from '@/utils/airspaces/airspaces-aip.js'
+
 const props = defineProps({
-  modelValue: Boolean
+  modelValue: Boolean,
+  decodedData: Object
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -83,21 +86,21 @@ const classes = [
   { label: 'G', value: 'G' }
 ]
 const types = [
-  { label: 'Prohibited', value: 'Prohibited' },
-  { label: 'Restricted', value: 'Restricted' },
-  { label: 'Danger', value: 'Danger' },
-  { label: 'CTR', value: 'CTR' },
-  { label: 'TMA', value: 'TMA' },
-  { label: 'RMZ', value: 'RMZ' },
-  { label: 'TMZ', value: 'TMZ' },
-  { label: 'Gliding', value: 'Gliding' },
-  { label: 'Autre', value: 'Autre' }
+  { label: 'Prohibited', value: 3 },
+  { label: 'Restricted', value: 1 },
+  { label: 'Danger', value: 2 },
+  { label: 'CTR', value: 4 },
+  { label: 'TMA', value: 7 },
+  { label: 'RMZ', value: 6 },
+  { label: 'TMZ', value: 5 },
+  { label: 'Gliding', value: 21 },
+  { label: 'Autre', value: 0 }
 ]
 const floors = [500, 1000, 2000, 3000, 4000, 5000]
 const radii = [50, 100, 150, 200, 300, 400, 500]
 
 const selectedClasses = ref(['A', 'B', 'C', 'D'])
-const selectedTypes = ref(['Prohibited', 'Restricted', 'Danger'])
+const selectedTypes = ref([3, 1, 2])  // Prohibited, Restricted, Danger
 const selectedFloor = ref(500)
 const selectedRadius = ref(50)
 
@@ -106,26 +109,49 @@ function onCheckTrack() {
 }
 
 function onDisplayOpenAipClicked() {
-    // Convertir selectedClasses.value en tableau d'index
-    const classIndexes = Object.keys(selectedClasses.value)
-    // 'SUA' Special Use Airspace with id 8 is always added
-    classIndexes.push('8')  
-    const typesIndexes = Object.keys(selectedTypes.value)
-    const floor = selectedFloor.value
-    const radius = selectedRadius.value * 1000
-    console.log('Display OpenAip clicked', {
-        classIndexes,
-        typesIndexes,
-        floor,
-        radius
-    })
-  // Action à définir
-    // const bloc1Checkboxes = Array.from(document.querySelectorAll('#cbA,#cbB, #cbC, #cbD, #cbE, #cbF, #cbG'))
-    //     .filter(cb => cb.checked)
-    //     .map(cb => cb.value)
-    // // 'SUA' Special Use Airspace with id 8 is always added
-    // bloc1Checkboxes.push('8')  
-    // console.log('Selected classes (with SUA):', bloc1Checkboxes)
+  // classIndexes : tableau d'index (string)
+  const classIndexes = Object.keys(selectedClasses.value)
+  // typesIndexes : tableau de string (valeurs numériques en string)
+  const typesIndexes = selectedTypes.value.map(v => v.toString())
+  console.log('Display OpenAip clicked', {
+    classIndexes,
+    typesIndexes,
+    floor: selectedFloor.value,
+    radius: selectedRadius.value
+  })
+  // 'SUA' Special Use Airspace with id 8 is always added
+  classIndexes.push('8')  
+  const floor = selectedFloor.value
+  const radius = selectedRadius.value * 1000
+  console.log('Display OpenAip clicked', {
+      classIndexes,
+      typesIndexes,
+      floor,
+      radius
+  })
+  const values = {
+      classIndexes,
+      typesIndexes,
+      floor,
+      radius
+  }
+  console.log('Display OpenAip clicked', values)
+  console.log('decodedData reçu dans AirspaceDialog :', props.decodedData.fixes.length,'points');     
+  //     invoketype: 'openaip:display',
+  //     args: {
+  //         values: values,
+  //         feature : this._feature,
+  //         filter : true
+  //     }
+  // }
+
+
+  // displayOpenAipAirspaces({
+  //     classIndexes,
+  //     typesIndexes,
+  //     floor,
+  //     radius
+  // })
 }
 </script>
 
